@@ -14,7 +14,7 @@ Arbetslivserfarenhet
 
     - Obsolescencehantering/livstidsförlängning av elektronikhårdvara
     - Elektronikutveckling och konstruktion
-    - Hantering av allmänna plattformsöverskridande produktfrågor avseende hårdvara, med mera
+    - Hantering av allmänna plattformsöverskridande produktfrågor avseende hårdvara så som brand, miljö, med mera
 <br>
 <br>
 *   **[Enics](http://www.enics.com/)** (Västerås)
