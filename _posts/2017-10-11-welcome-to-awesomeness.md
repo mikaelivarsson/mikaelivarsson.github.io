@@ -1,6 +1,7 @@
 ---
 layout: post
 title:  "Welcome to my awesomeness"
+comments: true
 ---
 Welcome to the awesomeness of me, Mikael Ivarsson.
 

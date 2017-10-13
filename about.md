@@ -2,6 +2,7 @@
 layout: page
 title: About
 permalink: /about/
+navigation_weight: 5
 ---
 
 This is the awesome site of Mikael Ivarsson.
