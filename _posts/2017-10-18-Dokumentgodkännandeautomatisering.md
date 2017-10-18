@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Dokumentgodkännandeautomatisering"
-categories: Automatisering, Programmering, Python, PDF
+categories: [Automatisering, Programmering, Python, PDF]
 comments: true
 ---
 På min arbetsplats jobbar vi mycket med dokumenthantering, det vill säga vi hanterar dokument.
