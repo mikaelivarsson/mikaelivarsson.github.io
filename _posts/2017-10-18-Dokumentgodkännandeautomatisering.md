@@ -42,3 +42,8 @@ och skapa filer; och ReportLab för att, med precision, kunna skapa en mallfil a
 med ursprungsfilen för att skapa ett godkänt dokument. Därefter var det en smal sak att få till
 ett script som automatiserade hela processen och som dessutom kan detektera vilken typ av
 dokument det rör sig om, om det är stående liggande format, A3 eller A4, m.m.
+
+Vill man lära sig [Python](https://www.python.org) finns det bra länkar till dokumentation
+på <https://www.python.org> och om man vill lära sig det specifikt för att automatisera sitt
+arbete kan jag rekommendera "[Automate The Boring Stuff With Python](https://automatetheboringstuff.com/)" som dels finns att köpa som
+en bok, men som även finns att läsa gratis och i sin helhet på <https://automatetheboringstuff.com/>
