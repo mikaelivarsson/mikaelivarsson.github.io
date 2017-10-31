@@ -102,7 +102,7 @@ Fristående kurser
     *Värnplikt*, 2004
 
     - Systemtekniker luftvärnskanonvagn 90
-       - 15 månaders kompanibefälsutbildning vara 6 månaders teknisk utbildning vid Arméns Tekniska Skola, Östersund.
+       - 15 månaders kompanibefälsutbildning varav 6 månaders teknisk utbildning vid Arméns Tekniska Skola, Östersund.
        - Felsökning och reparation av stridsfordon
        - Ledning av reparationsgrupp vid underhållsarbeten och viss ledning av pluton
 <br>
