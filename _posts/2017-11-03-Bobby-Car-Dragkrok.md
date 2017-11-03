@@ -16,7 +16,7 @@ Till att börja med gjorde jag helt enkelt en pinne med en bredare bas, avsedd a
 Det tog lite mer än två timmar att skriva ut den nya dragkrokspinnen, med roterande del, i ett stycke med hjälp av stödmaterial. När jag testade den fungerade den bra och lyckligtvis gick det att rotera klacken efter att ha tagit bort stödmaterialet. Klacken hade kunnat suttit högre upp för att få mindre glapp mellan bil och släp men det får duga så länge den håller.
 ![Bobby Car Pin Print]({{ "/assets/bobbycarpin.jpg" | absolute_url }})
 
-(Som syns på bilden så har också, fantastiskt nog, det blå plastfilamentet jag skriver ut med nästintill identisk kulör som bilen.)
+(Som syns på bilden har också, fantastiskt nog, det blå plastfilamentet jag skriver ut med nästintill identisk kulör som bilen.)
 
-För att avsluta denna post bjuder jag på den eminenta "Brorsans nya Bobbycar" av gruppen "Trio med Lax".
+För att avsluta denna post bjuder jag på en video till den eminenta låten "Brorsans nya Bobbycar" av gruppen "Trio med Lax".
 <iframe width="560" height="315" src="https://www.youtube.com/embed/F5uxx6fEfHQ?rel=0" frameborder="0" allowfullscreen></iframe>
