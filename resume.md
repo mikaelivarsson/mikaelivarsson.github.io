@@ -50,7 +50,7 @@ Arbetslivserfarenhet
 
     *Brandvakt*, Sommaren 2002
 
-    - Förberedde och undervakade vid heta arbeten under sågverkets underhållsstopp
+    - Förberedde och övervakade vid heta arbeten under sågverkets underhållsstopp
 <br>
 <br>
 *   **[Gavlegårdarna](http://www.gavlegardarna.se/)** (Norrsundet)
