@@ -21,3 +21,6 @@ Används för att övervaka temperaturer, spänningar etc.
 Används för att se datum och tid från terminalen
 
 ```date```
+
+## ffmpeg
+```ffmpeg -i <infil> -c copy <utfil>``` Kopiera från t.ex. .mkv -> .mp4
