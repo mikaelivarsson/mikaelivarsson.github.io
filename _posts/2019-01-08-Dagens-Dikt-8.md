@@ -10,4 +10,4 @@ tycker du det - ta en Samarin. \\
 Att påstå att en flodhäst är fet är ett hån. \\
 lätta på trycket, ta en Alvedon. \\
 En älg kan ibland ge sken av att vara en ren, \\
-men du är duperad, ta en Ipren. \\
+men du är duperad, ta en Ipren.
