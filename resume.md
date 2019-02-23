@@ -86,6 +86,8 @@ Fristående kurser
     - *Objektorienterad programmering med Java, 10p*, VT 2017, betyg: 3
 
     - *Objektorienterad programmering med C++, 10p*, VT 2016, betyg: 4
+
+    - *Allmän Musiklära, 7.5hp*, VT 2019, betyg: G
     
 *   **[Örebro Universitet](http://www.oru.se/)** (Distans)
 
