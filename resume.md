@@ -10,7 +10,7 @@ Arbetslivserfarenhet
 
 *   **[Bombardier Transportation](http://www.bombardier.com/)** (Västerås)
 
-    *HW Platform Management Engineer*, 2011 - Pågående
+    *HW Platform Team Lead*, 2011 - Pågående
 
     - Obsolescencehantering/livstidsförlängning av elektronikhårdvara
     - Elektronikutveckling och konstruktion
