@@ -12,6 +12,7 @@ Arbetslivserfarenhet
 
     *HW Platform Team Lead*, 2011 - Pågående
 
+    - Team Lead för hårdvaruplattformsgruppen som består av mig själv och ytterligare tre ingenjörer
     - Obsolescencehantering/livstidsförlängning av elektronikhårdvara
     - Elektronikutveckling och konstruktion
     - Hantering av allmänna plattformsöverskridande produktfrågor avseende hårdvara så som brand, miljö, med mera
