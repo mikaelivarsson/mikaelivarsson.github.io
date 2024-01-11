@@ -1,0 +1,52 @@
+body {
+        margin: 20px;
+        font-family: sans-serif;
+        color: #EEEEEE;
+        background-color: #031003;
+        max-width: 86ch;
+}
+
+a {
+        font-weight: bold;
+        color: #CCCC66;
+        text-decoration: none;
+}
+a:hover {
+        color: #FFFF00;
+}
+
+code {
+        font-family: monospace;
+        font-weight: bold;
+}
+
+pre {
+        padding: 10px;
+        background-color: black;
+        color: green;
+        border-style: solid;
+        border-width: 0px;
+        border-radius: 6px;
+        max-height: 56ch;
+        max-width: 83ch;
+        overflow: auto;
+}
+
+ul {
+        padding: 0px;
+        white-space: nowrap;
+        list-style: none;
+}
+
+li {
+        display: inline-block;
+        margin-right: 15px; 
+}
+
+footer {
+        text-align: center;
+}
+
+.normaltext {
+        text-align: justify;
+}
