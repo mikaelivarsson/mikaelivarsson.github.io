@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Slip Reducer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            color: #1f2937;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        th {
+            background-color: #f9fafb;
+            font-weight: 600;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+        .outcome-cell span {
+            display: inline-block;
+            width: 25px;
+            text-align: center;
+            font-weight: bold;
+        }
+        /* Corrected CSS selector to target the selected span */
+        .outcome-cell span.selected {
+            background-color: #3b82f6;
+            color: white;
+            border-radius: 4px;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+            text-align: center;
+        }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="container mx-auto">
+        <header class="text-center my-8">
+            <h1 class="text-4xl font-bold text-gray-800">Betting Slip Reducer</h1>
+            <p class="mt-2 text-gray-600">Analyze match data and filter slips based on your criteria.</p>
+        </header>
+
+        <main class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Data Fetching and Info Card -->
+            <div class="md:col-span-1 card">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Draw Information</h2>
+                <div class="mb-4">
+                    <label for="gameSelect" class="block text-gray-700 font-medium mb-1">Select Game:</label>
+                    <select id="gameSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="stryktipset">Stryktipset</option>
+                        <option value="europatipset">Europatipset</option>
+                    </select>
+                </div>
+                <div id="drawInfo" class="mb-4">
+                    <p id="productName" class="text-gray-600">Product: N/A</p>
+                    <p id="closeTime" class="text-gray-600">Close Time: N/A</p>
+                </div>
+                <button id="fetchBtn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-300">
+                    Fetch Data
+                </button>
+                <div id="loadingIndicator" class="mt-4 hidden text-center text-blue-500">
+                    <svg class="animate-spin h-5 w-5 mr-3 inline-block" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Loading...
+                </div>
+            </div>
+
+            <!-- Match Selections Card -->
+            <div class="md:col-span-2 card">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Match Selections</h2>
+                <button id="toggleAllBtn" class="mb-4 bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">
+                    Toggle All Selections
+                </button>
+                <div id="matchesTable" class="table-container">
+                    <!-- Matches will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Filters & Results Card -->
+            <div class="md:col-span-3 card">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700">Slip Filters & Results</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Favorites</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="minFavs" value="6" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="number" id="maxFavs" value="7" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Underdogs</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="minUnderdogs" value="3" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="number" id="maxUnderdogs" value="4" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-1">Draws</label>
+                        <div class="flex gap-2">
+                            <input type="number" id="minDraws" value="3" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            <input type="number" id="maxDraws" value="4" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="calculateBtn" class="w-full bg-green-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition duration-300">
+                    Calculate Slips
+                </button>
+                
+                <div id="results" class="mt-6 text-center">
+                    <p class="text-gray-700 font-medium">Total possible slips: <span id="totalSlips" class="font-bold text-lg">0</span></p>
+                    <p class="text-gray-700 font-medium">Filtered slips: <span id="filteredSlips" class="font-bold text-lg">0</span></p>
+                </div>
+                <div class="mt-4 flex gap-4">
+                    <button id="exportSlipsBtn" class="w-1/2 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                        Export Slips
+                    </button>
+                    <button id="exportAnalysisBtn" class="w-1/2 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
+                        Export Analysis
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fetchBtn = document.getElementById('fetchBtn');
+            const calculateBtn = document.getElementById('calculateBtn');
+            const exportSlipsBtn = document.getElementById('exportSlipsBtn');
+            const exportAnalysisBtn = document.getElementById('exportAnalysisBtn');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const productNameSpan = document.getElementById('productName');
+            const closeTimeSpan = document.getElementById('closeTime');
+            const matchesTable = document.getElementById('matchesTable');
+            const minFavsInput = document.getElementById('minFavs');
+            const maxFavsInput = document.getElementById('maxFavs');
+            const minUnderdogsInput = document.getElementById('minUnderdogs');
+            const maxUnderdogsInput = document.getElementById('maxUnderdogs');
+            const minDrawsInput = document.getElementById('minDraws');
+            const maxDrawsInput = document.getElementById('maxDraws');
+            const totalSlipsSpan = document.getElementById('totalSlips');
+            const filteredSlipsSpan = document.getElementById('filteredSlips');
+            const gameSelect = document.getElementById('gameSelect');
+            const toggleAllBtn = document.getElementById('toggleAllBtn');
+
+            let allMatches = [];
+            let currentFilteredSlips = [];
+            let currentProductName = 'N/A';
+            let currentCloseTime = 'N/A';
+            
+            const urls = {
+                stryktipset: "https://api.www.svenskaspel.se/external/1/draw/stryktipset/draws?accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7",
+                europatipset: "https://api.www.svenskaspel.se/external/1/draw/europatipset/draws?accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7"
+            };
+
+            // Fetches data from a given URL and returns it as a JSON object.
+            async function fetchData(url) {
+                loadingIndicator.classList.remove('hidden');
+                // Use a CORS proxy to bypass cross-origin restrictions
+                const proxyUrl = 'https://corsproxy.io/?';
+                const finalUrl = `${proxyUrl}${encodeURIComponent(url)}`;
+                try {
+                    const response = await fetch(finalUrl);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (e) {
+                    console.error("Failed to fetch data:", e);
+                    // This uses a custom modal instead of alert()
+                    const dialog = document.createElement('div');
+                    dialog.style.cssText = "position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); z-index: 1000; text-align: center;";
+                    dialog.innerHTML = `<p>Failed to fetch data. The CORS proxy may be blocked or down. You may try running the app in a different network or after some time.</p><button onclick="this.parentNode.remove()" style="margin-top: 10px; padding: 8px 16px; background-color: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">OK</button>`;
+                    document.body.appendChild(dialog);
+                    return null;
+                } finally {
+                    loadingIndicator.classList.add('hidden');
+                }
+            }
+
+            // Parses the JSON response and extracts match information.
+            function parseAndExtractMatches(json_data) {
+                if (!json_data || !json_data.draws || json_data.draws.length === 0) {
+                    return { matches: [], productName: "N/A", closeTime: "N/A" };
+                }
+
+                const draw = json_data.draws[0];
+                const productName = draw.productName ?? "N/A";
+                let closeTime = draw.closeTime ?? "N/A";
+                if (closeTime !== "N/A") {
+                    closeTime = closeTime.split('T')[0];
+                }
+                
+                const matches = [];
+                if (draw.events) {
+                    draw.events.forEach(event => {
+                        const info = {};
+                        info.home_team = event.participants.find(p => p.type === 'home')?.name || 'N/A';
+                        info.away_team = event.participants.find(p => p.type === 'away')?.name || 'N/A';
+                        
+                        // Parse odds
+                        info.odds = {
+                            '1': parseFloat(event.odds.home.replace(',', '.')),
+                            'X': parseFloat(event.odds.draw.replace(',', '.')),
+                            '2': parseFloat(event.odds.away.replace(',', '.'))
+                        };
+
+                        // Parse distribution
+                        info.distribution = {
+                            '1': event.distribution.home,
+                            'X': event.distribution.draw,
+                            '2': event.distribution.away
+                        };
+
+                        // Determine favorite, underdog, and draw outcomes
+                        const sortedOdds = Object.entries(info.odds).sort(([, a], [, b]) => a - b);
+                        info.favorite_outcome = sortedOdds[0][0];
+                        info.underdog_outcome = sortedOdds[2][0];
+                        info.draw_outcome = 'X'; 
+                        
+                        matches.push(info);
+                    });
+                }
+                return { matches, productName, closeTime };
+            }
+
+            // Renders the matches table on the page.
+            function renderMatches(matches) {
+                if (matches.length === 0) {
+                    matchesTable.innerHTML = `<p class="text-center text-gray-500">No matches to display. Please fetch data.</p>`;
+                    return;
+                }
+
+                let tableHtml = `
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th class="rounded-tl-lg">ID</th>
+                                <th>Match</th>
+                                <th>Odds (1, X, 2)</th>
+                                <th>Distribution (%)</th>
+                                <th>My Selections</th>
+                                <th>Outcome (F, U, D)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                matches.forEach((match, index) => {
+                    const odds = match.odds;
+                    const distribution = match.distribution;
+                    tableHtml += `
+                        <tr data-match-index="${index}">
+                            <td>${index + 1}</td>
+                            <td>${match.home_team} vs ${match.away_team}</td>
+                            <td>${odds['1'].toFixed(2)}, ${odds['X'].toFixed(2)}, ${odds['2'].toFixed(2)}</td>
+                            <td>${distribution['1']}%, ${distribution['X']}%, ${distribution['2']}%</td>
+                            <td class="outcome-cell">
+                                <span data-outcome="1" class="cursor-pointer selected">1</span>
+                                <span data-outcome="X" class="cursor-pointer selected">X</span>
+                                <span data-outcome="2" class="cursor-pointer selected">2</span>
+                            </td>
+                            <td>
+                                <span class="text-blue-500 font-bold">${match.favorite_outcome}</span> (F)<br/>
+                                <span class="text-red-500 font-bold">${match.underdog_outcome}</span> (U)<br/>
+                                <span class="text-green-500 font-bold">X</span> (D)
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                tableHtml += `
+                        </tbody>
+                    </table>
+                `;
+                matchesTable.innerHTML = tableHtml;
+
+                // Add event listeners to the selection spans
+                matchesTable.querySelectorAll('.outcome-cell span').forEach(span => {
+                    span.addEventListener('click', (e) => {
+                        e.target.classList.toggle('selected');
+                    });
+                });
+            }
+
+            // Recursive function to generate and filter slips.
+            function generateSlipsRecursive(selections, currentMatch, currentSlip) {
+                if (currentMatch === selections.length) {
+                    let favoriteCount = 0;
+                    let underdogCount = 0;
+                    let drawCount = 0;
+                    
+                    for (let i = 0; i < currentSlip.length; i++) {
+                        const match = allMatches[i];
+                        const selection = currentSlip[i];
+                        if (selection === match.favorite_outcome) {
+                            favoriteCount++;
+                        } else if (selection === match.underdog_outcome) {
+                            underdogCount++;
+                        } else if (selection === 'X') {
+                            drawCount++;
+                        }
+                    }
+
+                    const minFavs = parseInt(minFavsInput.value);
+                    const maxFavs = parseInt(maxFavsInput.value);
+                    const minUnderdogs = parseInt(minUnderdogsInput.value);
+                    const maxUnderdogs = parseInt(maxUnderdogsInput.value);
+                    const minDraws = parseInt(minDrawsInput.value);
+                    const maxDraws = parseInt(maxDrawsInput.value);
+
+                    if (favoriteCount >= minFavs && favoriteCount <= maxFavs &&
+                        underdogCount >= minUnderdogs && underdogCount <= maxUnderdogs &&
+                        drawCount >= minDraws && drawCount <= maxDraws) {
+                        currentFilteredSlips.push(currentSlip.join(''));
+                    }
+                    return;
+                }
+
+                for (const outcome of selections[currentMatch]) {
+                    currentSlip.push(outcome);
+                    generateSlipsRecursive(selections, currentMatch + 1, currentSlip);
+                    currentSlip.pop();
+                }
+            }
+
+            // Event listeners
+            fetchBtn.addEventListener('click', async () => {
+                const selectedGame = gameSelect.value;
+                const url = urls[selectedGame];
+                const data = await fetchData(url);
+                if (data) {
+                    const { matches, productName, closeTime } = parseAndExtractMatches(data);
+                    allMatches = matches;
+                    currentProductName = productName;
+                    currentCloseTime = closeTime;
+                    productNameSpan.textContent = `Product: ${currentProductName}`;
+                    closeTimeSpan.textContent = `Close Time: ${currentCloseTime}`;
+                    renderMatches(matches);
+                    // Clear previous results
+                    totalSlipsSpan.textContent = '0';
+                    filteredSlipsSpan.textContent = '0';
+                    exportSlipsBtn.disabled = true;
+                    exportAnalysisBtn.disabled = true;
+                }
+            });
+
+            toggleAllBtn.addEventListener('click', () => {
+                const allSpans = matchesTable.querySelectorAll('.outcome-cell span');
+                const isSelected = allSpans[0]?.classList.contains('selected') ?? false;
+                allSpans.forEach(span => {
+                    if (isSelected) {
+                        span.classList.remove('selected');
+                    } else {
+                        span.classList.add('selected');
+                    }
+                });
+                // Recalculate slips after toggling
+                calculateBtn.click();
+            });
+
+            calculateBtn.addEventListener('click', () => {
+                // Clear previous filtered slips
+                currentFilteredSlips = [];
+                
+                // Get user selections from the table
+                const userSelections = [];
+                let totalSlips = 1;
+
+                matchesTable.querySelectorAll('tr[data-match-index]').forEach(row => {
+                    const selections = [];
+                    row.querySelectorAll('.outcome-cell span.selected').forEach(span => {
+                        selections.push(span.getAttribute('data-outcome'));
+                    });
+                    userSelections.push(selections);
+                    totalSlips *= selections.length;
+                });
+                
+                totalSlipsSpan.textContent = totalSlips;
+
+                if (totalSlips === 0 || allMatches.length === 0) {
+                    filteredSlipsSpan.textContent = 0;
+                    exportSlipsBtn.disabled = true;
+                    exportAnalysisBtn.disabled = true;
+                    return;
+                }
+
+                // Run the recursive function to generate the actual filtered slips
+                generateSlipsRecursive(userSelections, 0, []);
+                
+                filteredSlipsSpan.textContent = currentFilteredSlips.length;
+                
+                // Enable export buttons
+                exportSlipsBtn.disabled = false;
+                exportAnalysisBtn.disabled = false;
+            });
+            
+            // Helper function to initiate a file download
+            function downloadFile(filename, text) {
+                const element = document.createElement('a');
+                element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+                element.setAttribute('download', filename);
+                element.style.display = 'none';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+            }
+
+            exportSlipsBtn.addEventListener('click', () => {
+                if (currentFilteredSlips.length > 0) {
+                    const filename = `${currentProductName}_${currentCloseTime}_slips.txt`;
+                    // Updated format to match the user's C++ program output
+                    const formattedSlips = currentFilteredSlips.map(slip => {
+                        // The user specified 'E' for both Stryktipset and Europatipset
+                        return `E,${slip.split('').join(',')}`;
+                    });
+                    const fileContent = `${currentProductName}\n${formattedSlips.join('\n')}`;
+                    downloadFile(filename, fileContent);
+                }
+            });
+
+            exportAnalysisBtn.addEventListener('click', () => {
+                // Get user selections again for the analysis file
+                const userSelections = [];
+                matchesTable.querySelectorAll('tr[data-match-index]').forEach(row => {
+                    const selections = [];
+                    row.querySelectorAll('.outcome-cell span.selected').forEach(span => {
+                        selections.push(span.getAttribute('data-outcome'));
+                    });
+                    userSelections.push(selections);
+                });
+                
+                // Determine what outcomes are actually present in the final filtered slips
+                const outcomesInSlips = allMatches.map(() => new Set());
+                currentFilteredSlips.forEach(slip => {
+                    for (let i = 0; i < slip.length; i++) {
+                        outcomesInSlips[i].add(slip[i]);
+                    }
+                });
+
+                // Helper function for consistent spacing in the table-like output
+                const pad = (str, len) => String(str).padEnd(len, ' ');
+
+                // Build the analysis content string with the specific formatting
+                let analysisContent = `Analysis for ${currentProductName} - ${currentCloseTime}\n`;
+                analysisContent += `=================================================\n\n`;
+                analysisContent += `Filtering Criteria:\n`;
+                analysisContent += `  Favorites:  ${minFavsInput.value} - ${maxFavsInput.value}\n`;
+                analysisContent += `  Underdogs:  ${minUnderdogsInput.value} - ${maxUnderdogsInput.value}\n`;
+                analysisContent += `  Draws:      ${minDrawsInput.value} - ${maxDrawsInput.value}\n\n`;
+                analysisContent += `Slip Reduction:\n`;
+                analysisContent += `  Total Slips: ${totalSlipsSpan.textContent}\n`;
+                analysisContent += `  Filtered Slips: ${filteredSlipsSpan.textContent}\n\n`;
+                analysisContent += `Match Breakdown:\n`;
+                analysisContent += `--------------------------------------------------------------------------------\n`;
+                analysisContent += `ID   Match                                         My SelectionsOutcomes in Slip\n`;
+                analysisContent += `--------------------------------------------------------------------------------\n`;
+
+                allMatches.forEach((match, index) => {
+                    const matchStr = `${match.home_team} vs ${match.away_team}`;
+                    
+                    // Format My Selections string for column alignment
+                    const mySelections_1_col = userSelections[index].includes('1') ? '1' : ' ';
+                    const mySelections_X_col = userSelections[index].includes('X') ? 'X' : ' ';
+                    const mySelections_2_col = userSelections[index].includes('2') ? '2' : ' ';
+                    const mySelectionsFormatted = `${mySelections_1_col} ${mySelections_X_col} ${mySelections_2_col}`;
+                    
+                    // Format Outcomes in Slip string for column alignment
+                    const outcomes_1_col = outcomesInSlips[index].has('1') ? '1' : ' ';
+                    const outcomes_X_col = outcomesInSlips[index].has('X') ? 'X' : ' ';
+                    const outcomes_2_col = outcomesInSlips[index].has('2') ? '2' : ' ';
+                    const outcomesInSlipFormatted = `${outcomes_1_col} ${outcomes_X_col} ${outcomes_2_col}`;
+                    
+                    let line = '';
+                    line += pad(index + 1, 5);
+                    line += pad(matchStr, 46);
+                    line += pad(mySelectionsFormatted, 15);
+                    line += outcomesInSlipFormatted;
+                    analysisContent += line + '\n';
+                });
+
+                const filename = `${currentProductName}_${currentCloseTime}_analysis.txt`;
+                downloadFile(filename, analysisContent);
+            });
+
+            // Initial data fetch on load
+            fetchBtn.click();
+        });
+    </script>
+</body>
+</html>
+
