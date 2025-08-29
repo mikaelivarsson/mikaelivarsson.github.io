@@ -322,7 +322,7 @@
                             <td>${index + 1}</td>
                             <td>${match.home_team} vs ${match.away_team}</td>
                             <td>${odds['1'].toFixed(2)}, ${odds['X'].toFixed(2)}, ${odds['2'].toFixed(2)}</td>
-                            <td>${distribution['1']}%, ${distribution['X']}%, ${distribution['2']}%</td>
+                            <td>${distribution['1']}, ${distribution['X']}, ${distribution['2']}</td>
 							<td><span class="${colorClass1}">${playability1}</span>, <span class="${colorClassX}">${playabilityX}</span>, <span class="${colorClass2}">${playability2}</span></td>
                             <td class="outcome-cell">
                                 <span data-outcome="1" class="cursor-pointer selected">1</span>
@@ -552,4 +552,5 @@
         });
     </script>
 </body>
+
 </html>
