@@ -105,8 +105,7 @@
                     </svg>
                     Loading...
                 </div>
-                
-                <div class="mt-8">
+                                <div class="mt-8">
                     <h3 class="text-lg font-semibold mb-2 text-gray-700">Slip Filters</h3>
                     <div class="mb-4">
                         <label class="block text-gray-700 font-medium mb-1">Favorites</label>
@@ -129,16 +128,13 @@
                             <input type="number" id="maxDraws" value="4" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center focus:outline-none focus:ring-2 focus:ring-blue-500">
                         </div>
                     </div>
-                    
-                    <button id="calculateBtn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">
+                                        <button id="calculateBtn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition duration-300">
                         Calculate Slips
                     </button>
-    
-                    <div id="results" class="mt-4 text-center">
+                        <div id="results" class="mt-4 text-center">
                         <p class="text-gray-700 text-sm font-medium">Total possible slips: <span id="totalSlips" class="font-bold">0</span></p>
                         <p class="text-gray-700 text-sm font-medium">Filtered slips: <span id="filteredSlips" class="font-bold">0</span></p>
                     </div>
-
                     <div class="mt-4 flex flex-col gap-2">
                         <button id="exportSlipsBtn" class="w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                             Export Slips
@@ -146,11 +142,11 @@
                         <button id="exportAnalysisBtn" class="w-full bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed" disabled>
                             Export Analysis
                         </button>
+                        <p id="revisionInfo" class="mt-2 text-center text-sm text-gray-500">Code Revision: 2025-09-05_13:31</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="md:col-span-9 card">
+                        <div class="md:col-span-9 card">
                 <h2 class="text-xl font-semibold mb-4 text-gray-700">Match Selections</h2>
                 <button id="toggleAllBtn" class="bg-gray-200 text-gray-800 font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-300">
                     Toggle All Selections
@@ -160,8 +156,7 @@
             </div>
         </main>
     </div>
-    
-    <script>
+        <script>
         document.addEventListener('DOMContentLoaded', () => {
             const fetchBtn = document.getElementById('fetchBtn');
             const calculateBtn = document.getElementById('calculateBtn');
@@ -181,12 +176,13 @@
             const filteredSlipsSpan = document.getElementById('filteredSlips');
             const gameSelect = document.getElementById('gameSelect');
             const toggleAllBtn = document.getElementById('toggleAllBtn');
+            const revisionInfo = document.getElementById('revisionInfo');
 
             let allMatches = [];
             let currentFilteredSlips = [];
             let currentProductName = 'N/A';
             let currentCloseTime = 'N/A';
-            
+
             // This is a new variable to hold user selections
             let userSelectionsOnFetch = null;
 
@@ -232,14 +228,14 @@
                 if (closeTime !== "N/A") {
                     closeTime = closeTime.split('T')[0];
                 }
-                
+                                
                 const matches = [];
                 if (draw.events) {
                     draw.events.forEach(event => {
                         const info = {};
                         info.home_team = event.participants.find(p => p.type === 'home')?.name || 'N/A';
                         info.away_team = event.participants.find(p => p.type === 'away')?.name || 'N/A';
-                        
+
                         // Parse odds
                         info.odds = {
                             '1': parseFloat(event.odds.home.replace(',', '.')),
@@ -258,8 +254,8 @@
                         const sortedOdds = Object.entries(info.odds).sort(([, a], [, b]) => a - b);
                         info.favorite_outcome = sortedOdds[0][0];
                         info.underdog_outcome = sortedOdds[2][0];
-                        info.draw_outcome = 'X'; 
-                        
+                        info.draw_outcome = 'X';
+                                                 
                         matches.push(info);
                     });
                 }
@@ -346,7 +342,7 @@
                     });
                 });
             }
-            
+
             // New function to save current selections
             function storeSelections() {
                 userSelectionsOnFetch = {};
@@ -387,15 +383,19 @@
                     let favoriteCount = 0;
                     let underdogCount = 0;
                     let drawCount = 0;
-                    
+
                     for (let i = 0; i < currentSlip.length; i++) {
                         const match = allMatches[i];
                         const selection = currentSlip[i];
+                        
+                        // Use separate if statements to count independently
                         if (selection === match.favorite_outcome) {
                             favoriteCount++;
-                        } else if (selection === match.underdog_outcome) {
+                        }
+                        if (selection === match.underdog_outcome) {
                             underdogCount++;
-                        } else if (selection === 'X') {
+                        }
+                        if (selection === 'X') {
                             drawCount++;
                         }
                     }
@@ -426,7 +426,7 @@
             fetchBtn.addEventListener('click', async () => {
                 // Store current selections before fetching new data
                 storeSelections();
-                
+
                 const selectedGame = gameSelect.value;
                 const url = urls[selectedGame];
                 const data = await fetchData(url);
@@ -438,7 +438,7 @@
                     productNameSpan.textContent = `Product: ${currentProductName}`;
                     closeTimeSpan.textContent = `Close Time: ${currentCloseTime}`;
                     renderMatches(matches);
-                    
+
                     // Apply the previously stored selections
                     applySelections();
 
@@ -467,7 +467,7 @@
             calculateBtn.addEventListener('click', () => {
                 // Clear previous filtered slips
                 currentFilteredSlips = [];
-                
+
                 // Get user selections from the table
                 const userSelections = [];
                 let totalSlips = 1;
@@ -492,14 +492,14 @@
 
                 // Run the recursive function to generate the actual filtered slips
                 generateSlipsRecursive(userSelections, 0, []);
-                
+
                 filteredSlipsSpan.textContent = currentFilteredSlips.length;
-                
+
                 // Enable export buttons
                 exportSlipsBtn.disabled = false;
                 exportAnalysisBtn.disabled = false;
             });
-            
+
             // Helper function to initiate a file download
             function downloadFile(filename, text) {
                 const element = document.createElement('a');
@@ -534,7 +534,7 @@
                     });
                     userSelections.push(selections);
                 });
-                
+
                 // Determine what outcomes are actually present in the final filtered slips
                 const outcomesInSlips = allMatches.map(() => new Set());
                 currentFilteredSlips.forEach(slip => {
@@ -563,19 +563,19 @@
 
                 allMatches.forEach((match, index) => {
                     const matchStr = `${match.home_team} vs ${match.away_team}`;
-                    
+
                     // Format My Selections string for column alignment
                     const mySelections_1_col = userSelections[index].includes('1') ? '1' : ' ';
                     const mySelections_X_col = userSelections[index].includes('X') ? 'X' : ' ';
                     const mySelections_2_col = userSelections[index].includes('2') ? '2' : ' ';
                     const mySelectionsFormatted = `${mySelections_1_col} ${mySelections_X_col} ${mySelections_2_col}`;
-                    
+
                     // Format Outcomes in Slip string for column alignment
                     const outcomes_1_col = outcomesInSlips[index].has('1') ? '1' : ' ';
                     const outcomes_X_col = outcomesInSlips[index].has('X') ? 'X' : ' ';
                     const outcomes_2_col = outcomesInSlips[index].has('2') ? '2' : ' ';
                     const outcomesInSlipFormatted = `${outcomes_1_col} ${outcomes_X_col} ${outcomes_2_col}`;
-                    
+
                     let line = '';
                     line += pad(index + 1, 5);
                     line += pad(matchStr, 46);
