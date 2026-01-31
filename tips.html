@@ -34,7 +34,6 @@
 <body class="bg-gray-100 p-4 md:p-8">
     <div class="max-w-7xl mx-auto">
         
-
         <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-4 flex flex-col gap-6">
                 <div class="card">
@@ -52,7 +51,7 @@
 
                 <div class="card">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-gray-800">2. Filter (100k-1M Profil)</h2>
+                        <h2 class="text-xl font-bold text-gray-800">2. Filter (Reducering)</h2>
                         <button id="resetSettingsBtn" class="text-xs text-red-500 hover:underline">Återställ</button>
                     </div>
                     
@@ -72,7 +71,7 @@
                             </div>
                         </div>
                         <div>
-                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Bomber (< 15%)</label>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Bomber (&lt; 15%)</label>
                             <div class="flex gap-2">
                                 <input type="number" id="minBombs" value="1" class="save-state w-full p-2 border rounded text-center">
                                 <input type="number" id="maxBombs" value="2" class="save-state w-full p-2 border rounded text-center">
@@ -298,11 +297,12 @@
                     for(let i=0; i<13; i++) {
                         const dist = allMatches[i].dist[rad[i]];
                         if(rad[i] === allMatches[i].fav) f++;
-                        if(dist >= 0.20 && dist <= 0.30) u++; // Skrällar definierade som 20-30%
-                        if(dist < 0.15) b++; // Bomber definierade som under 15%
+                        if(dist >= 0.20 && dist <= 0.30) u++;
+                        if(dist < 0.15) b++;
                         if(rad[i] === 'X') x++;
                     }
                     const pay = (1 / prob) * 0.65;
+                    
                     if (f>=config.minF && f<=config.maxF && u>=config.minU && u<=config.maxU && x>=config.minX && x<=config.maxX && b>=config.minB && b<=config.maxB && pay>=config.minP && pay<=config.maxP) {
                         calculatedRader.push(rad.join(''));
                         payouts.push(pay);
