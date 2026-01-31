@@ -22,11 +22,9 @@
         .outcome-cell span.selected { background-color: #3b82f6; color: white; border-color: #2563eb; }
         .outcome-cell span.reduced-out { border: 2px solid #ef4444 !important; text-decoration: line-through; opacity: 0.5; background-color: #fee2e2; color: #b91c1c; }
         
-        .green { color: #10b981; font-weight: bold; }
-        .red { color: #ef4444; font-weight: bold; }
         .stats-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px; border-radius: 8px; margin-top: 10px; }
         .market-odds { color: #2563eb; font-weight: 600; font-size: 0.75rem; }
-        .ev-badge { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+        .ev-badge { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; font-weight: bold; margin-right: 2px; }
         .ev-plus { background-color: #d1fae5; color: #065f46; }
         .ev-minus { background-color: #fee2e2; color: #991b1b; }
     </style>
@@ -212,9 +210,10 @@
             let html = `<table><thead><tr>
                 <th>#</th>
                 <th>Match</th>
-                <th>Svenska Spel</th>
+                <th class="text-blue-600">Folkets %</th>
+                <th>SvS Odds</th>
                 <th>Market Max</th>
-                <th>Spelvärde (EV)</th>
+                <th>Värde (EV)</th>
                 <th>Val</th>
             </tr></thead><tbody>`;
 
@@ -234,15 +233,21 @@
                     return "";
                 };
 
+                // Formatera distributionen (Folkets %)
+                const p1 = Math.round(m.dist['1'] * 100);
+                const pX = Math.round(m.dist['X'] * 100);
+                const p2 = Math.round(m.dist['2'] * 100);
+
                 html += `<tr>
                     <td class="text-gray-400 font-medium">${i+1}</td>
                     <td><div class="font-bold text-gray-800 text-sm">${m.home} - ${m.away}</div></td>
+                    <td class="text-xs font-bold text-blue-700">${p1}% | ${pX}% | ${p2}%</td>
                     <td class="text-xs text-gray-500">${m.odds['1']} | ${m.odds['X']} | ${m.odds['2']}</td>
                     <td class="market-odds">${m.marketOdds['1']} | ${m.marketOdds['X']} | ${m.marketOdds['2']}</td>
                     <td class="text-xs">
-                        <span class="ev-badge ${getEV('1')>1.1?'ev-plus':'ev-minus'}">${getEV('1')}</span>
-                        <span class="ev-badge ${getEV('X')>1.1?'ev-plus':'ev-minus'}">${getEV('X')}</span>
-                        <span class="ev-badge ${getEV('2')>1.1?'ev-plus':'ev-minus'}">${getEV('2')}</span>
+                        <span class="ev-badge ${getEV('1')>1.05?'ev-plus':'ev-minus'}">${getEV('1')}</span>
+                        <span class="ev-badge ${getEV('X')>1.05?'ev-plus':'ev-minus'}">${getEV('X')}</span>
+                        <span class="ev-badge ${getEV('2')>1.05?'ev-plus':'ev-minus'}">${getEV('2')}</span>
                     </td>
                     <td class="outcome-cell" data-row="${i}">
                         <span data-o="1" class="${getStatus('1')}">1</span>
