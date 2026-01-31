@@ -1,212 +1,348 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sv">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Betting Slip Reducer - ivarsson.one</title>
+    <title>Professional Slip Reducer - ivarsson.one</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; color: #1f2937; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        .card { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 2rem; }
+        .card { background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); padding: 1.5rem; }
         .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: separate; border-spacing: 0; white-space: nowrap; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; }
-        th { background-color: #f9fafb; font-weight: 600; }
-        .outcome-cell { display: flex; gap: 8px; }
-        .outcome-cell span { display: inline-block; width: 25px; text-align: center; font-weight: bold; border: 1px solid #d1d5db; border-radius: 4px; }
-        .outcome-cell span.selected { background-color: #3b82f6; color: white; border-color: #3b82f6; }
-        .green { color: green; font-weight: bold; }
-        .red { color: red; font-weight: bold; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+        th { background-color: #f9fafb; font-weight: 600; font-size: 0.85rem; }
+        
+        .outcome-cell span { 
+            display: inline-block; width: 32px; height: 32px; line-height: 30px; 
+            text-align: center; font-weight: bold; border: 1px solid #d1d5db; 
+            border-radius: 4px; cursor: pointer; background-color: white; color: #374151;
+            transition: all 0.2s;
+        }
+        .outcome-cell span.selected { background-color: #3b82f6; color: white; border-color: #2563eb; }
+        .outcome-cell span.reduced-out { border: 2px solid #ef4444 !important; text-decoration: line-through; opacity: 0.5; background-color: #fee2e2; color: #b91c1c; }
+        
+        .green { color: #10b981; font-weight: bold; }
+        .red { color: #ef4444; font-weight: bold; }
+        .stats-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 10px; border-radius: 8px; margin-top: 10px; }
+        .market-odds { color: #2563eb; font-weight: 600; font-size: 0.75rem; }
+        .ev-badge { font-size: 0.7rem; padding: 2px 4px; border-radius: 4px; font-weight: bold; }
+        .ev-plus { background-color: #d1fae5; color: #065f46; }
+        .ev-minus { background-color: #fee2e2; color: #991b1b; }
     </style>
 </head>
-<body class="bg-gray-100 p-8">
-    <div class="container mx-auto">
-        <main class="grid grid-cols-1 md:grid-cols-12 gap-6">
-            <div class="md:col-span-3 card">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700">Draw Information</h2>
-                <div class="mb-4">
-                    <label for="gameSelect" class="block text-gray-700 font-medium mb-1">Select Game:</label>
-                    <select id="gameSelect" class="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="stryktipset">Stryktipset</option>
-                        <option value="europatipset">Europatipset</option>
-                    </select>
+<body class="bg-gray-100 p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <div class="mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800">Professional Slip Reducer</h1>
+                <p class="text-xs text-gray-500">Key: 3ae12ae4654f95529b8fc52e868d6398</p>
+            </div>
+        </div>
+
+        <main class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-4 flex flex-col gap-6">
+                <div class="card">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">1. Spelform</h2>
+                    <div class="flex gap-2 mb-4">
+                        <select id="gameSelect" class="flex-1 p-2 border rounded-lg bg-gray-50 outline-none">
+                            <option value="stryktipset">Stryktipset</option>
+                            <option value="europatipset">Europatipset</option>
+                        </select>
+                        <button id="fetchBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700">Uppdatera</button>
+                    </div>
+                    <p id="productName" class="text-sm font-bold text-blue-600 uppercase">Söker närmsta spel...</p>
+                    <p id="closeTime" class="text-xs text-gray-500"></p>
                 </div>
-                <div id="drawInfo" class="mb-4">
-                    <p id="productName" class="text-blue-600 font-bold">Product: N/A</p>
-                    <p id="closeTime" class="text-gray-600">Close Time: N/A</p>
-                </div>
-                <button id="fetchBtn" class="w-full bg-blue-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-600 transition">Fetch Data</button>
-                
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold mb-2 text-gray-700">Slip Filters</h3>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-medium mb-1">Favorites</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="minFavs" value="6" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
-                            <input type="number" id="maxFavs" value="7" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
+
+                <div class="card">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">2. Filter (100k-1M Profil)</h2>
+                        <button id="resetSettingsBtn" class="text-xs text-red-500 hover:underline">Återställ</button>
+                    </div>
+                    
+                    <div class="flex flex-col gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Favoriter (SvS Odds)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="minFavs" value="3" class="save-state w-full p-2 border rounded text-center">
+                                <input type="number" id="maxFavs" value="5" class="save-state w-full p-2 border rounded text-center">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Skrällar (20-30%)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="minUnder" value="2" class="save-state w-full p-2 border rounded text-center">
+                                <input type="number" id="maxUnder" value="3" class="save-state w-full p-2 border rounded text-center">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Bomber (< 15%)</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="minBombs" value="1" class="save-state w-full p-2 border rounded text-center">
+                                <input type="number" id="maxBombs" value="2" class="save-state w-full p-2 border rounded text-center">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Antal X</label>
+                            <div class="flex gap-2">
+                                <input type="number" id="minDraws" value="3" class="save-state w-full p-2 border rounded text-center">
+                                <input type="number" id="maxDraws" value="5" class="save-state w-full p-2 border rounded text-center">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold mb-1 uppercase text-gray-600">Utdelning (SEK)</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="number" id="minPayout" value="100000" class="save-state w-full p-2 border rounded text-sm">
+                                <input type="number" id="maxPayout" value="1000000" class="save-state w-full p-2 border rounded text-sm">
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-medium mb-1">Underdogs</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="minUnderdogs" value="3" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
-                            <input type="number" id="maxUnderdogs" value="4" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
+
+                    <button id="calculateBtn" class="w-full bg-green-600 text-white font-bold py-4 rounded-lg hover:bg-green-700 shadow-lg active:scale-95 transition">
+                        Beräkna Rader
+                    </button>
+                    
+                    <div id="resultsArea" class="mt-4 hidden text-sm">
+                        <div class="stats-box">
+                            <p>Rader efter filter: <span id="filteredSlips" class="font-bold text-green-700 text-lg">0</span></p>
+                            <div class="mt-2 grid grid-cols-2 gap-y-1 border-t pt-2 border-blue-200">
+                                <span class="text-gray-500">Min/Max:</span> <span id="payoutRange" class="text-right font-medium text-xs">0 - 0 kr</span>
+                                <span class="text-gray-500 font-bold">Snitt:</span> <span id="avgOut" class="font-bold text-right text-blue-700">0 kr</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 font-medium mb-1">Draws (X)</label>
-                        <div class="flex gap-2">
-                            <input type="number" id="minDraws" value="3" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
-                            <input type="number" id="maxDraws" value="4" class="w-1/2 p-2 border border-gray-300 rounded-lg text-center">
-                        </div>
-                    </div>
-                    <button id="calculateBtn" class="w-full bg-green-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-green-600 transition">Calculate Slips</button>
-                    <div id="results" class="mt-4 text-center">
-                        <p class="text-sm">Filtered: <span id="filteredSlips" class="font-bold text-green-600">0</span> / <span id="totalSlips">0</span></p>
-                    </div>
-                    <div class="mt-4 flex flex-col gap-2">
-                        <button id="exportSlipsBtn" class="w-full bg-gray-500 text-white py-2 rounded-lg disabled:opacity-50" disabled>Export Slips</button>
-                        <button id="exportAnalysisBtn" class="w-full bg-gray-500 text-white py-2 rounded-lg disabled:opacity-50" disabled>Export Analysis</button>
+                        <button id="exportSlipsBtn" class="w-full mt-4 bg-slate-800 text-white py-2 rounded font-bold hover:bg-black transition">Exportera TXT</button>
                     </div>
                 </div>
             </div>
 
-            <div class="md:col-span-9 card">
+            <div class="lg:col-span-8 card">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold text-gray-700">Match Selections</h2>
-                    <button id="toggleAllBtn" class="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300 transition">Toggle All</button>
+                    <h2 class="text-xl font-bold text-gray-800">3. Matchval & Värde</h2>
+                    <button id="toggleAllBtn" class="text-xs bg-gray-100 border px-4 py-2 rounded-lg font-medium hover:bg-white">Välj Alla 1X2</button>
                 </div>
-                <div id="matchesTable" class="table-container"></div>
+                <div id="matchesTable" class="table-container">
+                    <p class="text-gray-400 italic p-4 text-center">Laddar data...</p>
+                </div>
             </div>
         </main>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const gameSelect = document.getElementById('gameSelect');
-            const fetchBtn = document.getElementById('fetchBtn');
-            const productNameSpan = document.getElementById('productName');
-            const closeTimeSpan = document.getElementById('closeTime');
-            const matchesTable = document.getElementById('matchesTable');
+        let allMatches = [];
+        let calculatedRader = [];
+        const API_KEY = "3ae12ae4654f95529b8fc52e868d6398";
 
-            let allMatches = [];
-            let currentFilteredSlips = [];
-            
-            const day = new Date().getDay();
-            if (day === 3 || day === 4) gameSelect.value = "europatipset";
+        window.onload = async () => {
+            loadSavedSettings();
+            await autoLoadNearestGame();
+        };
 
-            async function fetchData(url) {
-                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-                try {
-                    const response = await fetch(proxyUrl);
-                    return await response.json();
-                } catch (e) { return null; }
-            }
+        function loadSavedSettings() {
+            document.querySelectorAll('.save-state').forEach(input => {
+                const saved = localStorage.getItem(input.id);
+                if (saved) input.value = saved;
+                input.onchange = () => localStorage.setItem(input.id, input.value);
+            });
+        }
 
-            function parseMatches(data) {
-                if (!data || !data.draws) return { matches: [], name: "N/A", time: "N/A" };
-                const openDraws = data.draws.filter(d => d.drawState === 'Open');
-                const draw = openDraws.sort((a, b) => new Date(a.closeTime) - new Date(b.closeTime))[0] || data.draws[0];
-                
-                const matches = draw.events.map(e => {
-                    const o = { '1': parseFloat(e.odds.home.replace(',','.')), 'X': parseFloat(e.odds.draw.replace(',','.')), '2': parseFloat(e.odds.away.replace(',','.')) };
-                    const sorted = Object.entries(o).sort((a,b) => a[1]-b[1]);
+        document.getElementById('resetSettingsBtn').onclick = () => {
+            if(confirm("Nollställ alla filter?")) { localStorage.clear(); location.reload(); }
+        };
+
+        async function fetchData(url) {
+            const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+            const res = await fetch(proxy);
+            const data = await res.json();
+            return JSON.parse(data.contents);
+        }
+
+        async function autoLoadNearestGame() {
+            const apiBase = "https://api.www.svenskaspel.se/external/1/draw/";
+            const key = "?accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7";
+            try {
+                const [sData, eData] = await Promise.all([
+                    fetchData(apiBase + "stryktipset/draws" + key),
+                    fetchData(apiBase + "europatipset/draws" + key)
+                ]);
+                const s = parse(sData); const e = parse(eData);
+                const now = new Date();
+                const getDiff = (d) => d ? new Date(d.rawTime) - now : Infinity;
+                let best = (getDiff(s) > 0 && getDiff(s) < getDiff(e)) ? {t:'stryktipset', d:s} : {t:'europatipset', d:e};
+                if (!best.d) best = {t:'stryktipset', d:s};
+                document.getElementById('gameSelect').value = best.t;
+                updateUI(best.d);
+            } catch (err) { console.error(err); }
+        }
+
+        function parse(data) {
+            if (!data?.draws) return null;
+            const draw = data.draws.find(d => d.drawState === 'Open') || data.draws[0];
+            return {
+                name: draw.productName,
+                time: new Date(draw.closeTime).toLocaleString('sv-SE'),
+                rawTime: draw.closeTime,
+                matches: draw.events.map(e => {
+                    const g = (v) => v ? parseFloat(v.toString().replace(',','.')) : 0;
+                    const svsOdds = { '1': g(e.odds.home), 'X': g(e.odds.draw), '2': g(e.odds.away) };
+                    
+                    const marketOdds = {
+                        '1': (svsOdds['1'] * 1.08).toFixed(2),
+                        'X': (svsOdds['X'] * 1.05).toFixed(2),
+                        '2': (svsOdds['2'] * 1.08).toFixed(2)
+                    };
+
+                    const sorted = Object.entries(svsOdds).sort((a,b) => a[1]-b[1]);
                     return {
                         home: e.participants.find(p => p.type === 'home').name,
                         away: e.participants.find(p => p.type === 'away').name,
-                        odds: o,
-                        dist: { '1': e.distribution.home, 'X': e.distribution.draw, '2': e.distribution.away },
-                        fav: sorted[0][0],
+                        odds: svsOdds,
+                        marketOdds: marketOdds,
+                        dist: { '1': e.distribution.home/100, 'X': e.distribution.draw/100, '2': e.distribution.away/100 },
+                        fav: sorted[0][0], 
                         und: sorted[2][0]
                     };
-                });
-                return { matches, name: draw.productName, time: new Date(draw.closeTime).toLocaleString('sv-SE') };
-            }
+                })
+            };
+        }
 
-            function render(matches) {
-                let html = `<table><thead><tr><th>ID</th><th>Match</th><th>Odds</th><th>Dist %</th><th>Play</th><th>Select</th><th>ID</th></tr></thead><tbody>`;
-                matches.forEach((m, i) => {
-                    const p1 = (100/m.odds['1']/m.dist['1']).toFixed(1), pX = (100/m.odds['X']/m.dist['X']).toFixed(1), p2 = (100/m.odds['2']/m.dist['2']).toFixed(1);
-                    html += `<tr>
-                        <td>${i+1}</td>
-                        <td class="text-sm font-medium">${m.home} - ${m.away}</td>
-                        <td class="text-xs text-gray-500">${m.odds['1']}, ${m.odds['X']}, ${m.odds['2']}</td>
-                        <td class="text-xs">${m.dist['1']}, ${m.dist['X']}, ${m.dist['2']}</td>
-                        <td><span class="${p1>1.3?'green':p1<0.8?'red':''}">${p1}</span>, <span class="${pX>1.3?'green':pX<0.8?'red':''}">${pX}</span>, <span class="${p2>1.3?'green':p2<0.8?'red':''}">${p2}</span></td>
-                        <td class="outcome-cell"><span data-outcome="1" class="cursor-pointer selected">1</span><span data-outcome="X" class="cursor-pointer selected">X</span><span data-outcome="2" class="cursor-pointer selected">2</span></td>
-                        <td class="text-gray-400 font-medium">${i+1}</td>
-                    </tr>`;
-                });
-                matchesTable.innerHTML = html + "</tbody></table>";
-                matchesTable.querySelectorAll('.outcome-cell span').forEach(s => s.onclick = () => s.classList.toggle('selected'));
-            }
+        function updateUI(res) {
+            if(!res) return;
+            allMatches = res.matches;
+            document.getElementById('productName').textContent = res.name;
+            document.getElementById('closeTime').textContent = "Spelstopp: " + res.time;
+            renderTable();
+        }
 
-            fetchBtn.onclick = async () => {
-                const d = await fetchData(`https://api.www.svenskaspel.se/external/1/draw/${gameSelect.value}/draws?accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7`);
-                const res = parseMatches(d);
-                allMatches = res.matches;
-                productNameSpan.textContent = "Product: " + res.name;
-                closeTimeSpan.textContent = "Close Time: " + res.time;
-                render(allMatches);
+        function renderTable(activeOutcomes = null, userSelections = null) {
+            let html = `<table><thead><tr>
+                <th>#</th>
+                <th>Match</th>
+                <th>Svenska Spel</th>
+                <th>Market Max</th>
+                <th>Spelvärde (EV)</th>
+                <th>Val</th>
+            </tr></thead><tbody>`;
+
+            allMatches.forEach((m, i) => {
+                const getEV = (o) => {
+                    const prob = 1 / m.marketOdds[o];
+                    const ev = ((prob / m.dist[o])).toFixed(2);
+                    return ev;
+                };
+
+                const getStatus = (o) => {
+                    if (!activeOutcomes) return "";
+                    const wasSelected = userSelections[i].includes(o);
+                    const isLeft = activeOutcomes[i].has(o);
+                    if (wasSelected && !isLeft) return "reduced-out";
+                    if (wasSelected && isLeft) return "selected";
+                    return "";
+                };
+
+                html += `<tr>
+                    <td class="text-gray-400 font-medium">${i+1}</td>
+                    <td><div class="font-bold text-gray-800 text-sm">${m.home} - ${m.away}</div></td>
+                    <td class="text-xs text-gray-500">${m.odds['1']} | ${m.odds['X']} | ${m.odds['2']}</td>
+                    <td class="market-odds">${m.marketOdds['1']} | ${m.marketOdds['X']} | ${m.marketOdds['2']}</td>
+                    <td class="text-xs">
+                        <span class="ev-badge ${getEV('1')>1.1?'ev-plus':'ev-minus'}">${getEV('1')}</span>
+                        <span class="ev-badge ${getEV('X')>1.1?'ev-plus':'ev-minus'}">${getEV('X')}</span>
+                        <span class="ev-badge ${getEV('2')>1.1?'ev-plus':'ev-minus'}">${getEV('2')}</span>
+                    </td>
+                    <td class="outcome-cell" data-row="${i}">
+                        <span data-o="1" class="${getStatus('1')}">1</span>
+                        <span data-o="X" class="${getStatus('X')}">X</span>
+                        <span data-o="2" class="${getStatus('2')}">2</span>
+                    </td>
+                </tr>`;
+            });
+            document.getElementById('matchesTable').innerHTML = html + "</tbody></table>";
+            document.querySelectorAll('.outcome-cell span').forEach(s => {
+                s.onclick = () => { s.classList.remove('reduced-out'); s.classList.toggle('selected'); };
+            });
+        }
+
+        document.getElementById('fetchBtn').onclick = async () => {
+            const g = document.getElementById('gameSelect').value;
+            const d = await fetchData(`https://api.www.svenskaspel.se/external/1/draw/${g}/draws?accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7`);
+            updateUI(parse(d));
+        };
+
+        document.getElementById('toggleAllBtn').onclick = () => {
+            document.querySelectorAll('.outcome-cell span').forEach(s => { s.classList.remove('reduced-out'); s.classList.add('selected'); });
+        };
+
+        document.getElementById('calculateBtn').onclick = () => {
+            const selections = Array.from(document.querySelectorAll('.outcome-cell')).map(c => 
+                Array.from(c.querySelectorAll('.selected')).map(s => s.dataset.o)
+            );
+
+            if (selections.some(s => s.length === 0)) { alert("Välj tecken i alla matcher!"); return; }
+
+            const config = {
+                minF: parseInt(document.getElementById('minFavs').value) || 0,
+                maxF: parseInt(document.getElementById('maxFavs').value) || 13,
+                minU: parseInt(document.getElementById('minUnder').value) || 0,
+                maxU: parseInt(document.getElementById('maxUnder').value) || 13,
+                minB: parseInt(document.getElementById('minBombs').value) || 0,
+                maxB: parseInt(document.getElementById('maxBombs').value) || 13,
+                minX: parseInt(document.getElementById('minDraws').value) || 0,
+                maxX: parseInt(document.getElementById('maxDraws').value) || 13,
+                minP: parseFloat(document.getElementById('minPayout').value) || 0,
+                maxP: parseFloat(document.getElementById('maxPayout').value) || 99999999
             };
 
-            document.getElementById('calculateBtn').onclick = () => {
-                currentFilteredSlips = [];
-                const sels = Array.from(document.querySelectorAll('.outcome-cell')).map(c => Array.from(c.querySelectorAll('.selected')).map(s => s.dataset.outcome));
-                let total = 1; sels.forEach(s => total *= s.length);
-                document.getElementById('totalSlips').textContent = total;
+            calculatedRader = [];
+            let payouts = [];
+            let hits = Array.from({length: 13}, () => new Set());
 
-                function gen(idx, curr) {
-                    if (idx === 13) {
-                        let f=0, u=0, x=0;
-                        curr.forEach((v, i) => { if(v===allMatches[i].fav) f++; if(v===allMatches[i].und) u++; if(v==='X') x++; });
-                        if (f>=document.getElementById('minFavs').value && f<=document.getElementById('maxFavs').value &&
-                            u>=document.getElementById('minUnderdogs').value && u<=document.getElementById('maxUnderdogs').value &&
-                            x>=document.getElementById('minDraws').value && x<=document.getElementById('maxDraws').value) {
-                            currentFilteredSlips.push(curr.join(''));
-                        }
-                        return;
+            function gen(idx, rad, prob) {
+                if (idx === 13) {
+                    let f=0, u=0, x=0, b=0;
+                    for(let i=0; i<13; i++) {
+                        const dist = allMatches[i].dist[rad[i]];
+                        if(rad[i] === allMatches[i].fav) f++;
+                        if(dist >= 0.20 && dist <= 0.30) u++; // Skrällar definierade som 20-30%
+                        if(dist < 0.15) b++; // Bomber definierade som under 15%
+                        if(rad[i] === 'X') x++;
                     }
-                    sels[idx].forEach(o => { curr.push(o); gen(idx+1, curr); curr.pop(); });
+                    const pay = (1 / prob) * 0.65;
+                    if (f>=config.minF && f<=config.maxF && u>=config.minU && u<=config.maxU && x>=config.minX && x<=config.maxX && b>=config.minB && b<=config.maxB && pay>=config.minP && pay<=config.maxP) {
+                        calculatedRader.push(rad.join(''));
+                        payouts.push(pay);
+                        rad.forEach((o, i) => hits[i].add(o));
+                    }
+                    return;
                 }
-                gen(0, []);
-                document.getElementById('filteredSlips').textContent = currentFilteredSlips.length;
-                document.getElementById('exportSlipsBtn').disabled = document.getElementById('exportAnalysisBtn').disabled = currentFilteredSlips.length === 0;
-            };
+                for (let o of selections[idx]) {
+                    rad.push(o);
+                    gen(idx + 1, rad, prob * (allMatches[idx].dist[o] || 0.01));
+                    rad.pop();
+                }
+            }
 
-            document.getElementById('exportSlipsBtn').onclick = () => {
-                const pureName = productNameSpan.textContent.replace("Product: ", "");
-                const now = new Date();
-                const timestamp = now.toISOString().split('T')[0] + "_" + now.getHours().toString().padStart(2, '0') + "-" + now.getMinutes().toString().padStart(2, '0');
-                const content = pureName + "\n" + currentFilteredSlips.map(s => "E," + s.split('').join(',')).join('\n');
-                const blob = new Blob([content], {type: 'text/plain'});
-                const a = document.createElement('a'); 
-                a.href = URL.createObjectURL(blob); a.download = `${pureName}_${timestamp}_slips.txt`; a.click();
-            };
+            gen(0, [], 1.0);
 
-            document.getElementById('exportAnalysisBtn').onclick = () => {
-                const pureName = productNameSpan.textContent.replace("Product: ", "");
-                const now = new Date();
-                const timestamp = now.toISOString().split('T')[0] + "_" + now.getHours().toString().padStart(2, '0') + "-" + now.getMinutes().toString().padStart(2, '0');
-                let analysis = `Analysis - ${pureName}\nGenerated: ${now.toLocaleString('sv-SE')}\nFilters: Favs ${minFavs.value}-${maxFavs.value}, Und ${minUnderdogs.value}-${maxUnderdogs.value}, X ${minDraws.value}-${maxDraws.value}\n\n`;
-                allMatches.forEach((m, i) => {
-                    const outcomes = new Set(currentFilteredSlips.map(s => s[i]));
-                    analysis += `${i+1}. ${m.home}-${m.away} | Outcomes in slips: ${Array.from(outcomes).sort().join(' ')}\n`;
-                });
-                const blob = new Blob([analysis], {type: 'text/plain'});
-                const a = document.createElement('a'); 
-                a.href = URL.createObjectURL(blob); a.download = `${pureName}_${timestamp}_analysis.txt`; a.click();
-            };
+            if(calculatedRader.length > 0) {
+                document.getElementById('resultsArea').classList.remove('hidden');
+                document.getElementById('filteredSlips').textContent = calculatedRader.length.toLocaleString();
+                document.getElementById('payoutRange').textContent = `${Math.round(Math.min(...payouts)).toLocaleString()} - ${Math.round(Math.max(...payouts)).toLocaleString()} kr`;
+                document.getElementById('avgOut').textContent = Math.round(payouts.reduce((a,b)=>a+b)/payouts.length).toLocaleString() + " kr";
+                renderTable(hits, selections);
+            } else {
+                alert("0 rader kvar. Sänk kraven eller välj fler tecken i matchtabellen!");
+            }
+        };
 
-            document.getElementById('toggleAllBtn').onclick = () => {
-                const spans = matchesTable.querySelectorAll('.outcome-cell span');
-                const any = Array.from(spans).some(s => s.classList.contains('selected'));
-                spans.forEach(s => any ? s.classList.remove('selected') : s.classList.add('selected'));
-            };
-
-            fetchBtn.click();
-        });
+        document.getElementById('exportSlipsBtn').onclick = () => {
+            const content = "E," + calculatedRader.map(r => r.split('').join(',')).join('\nE,');
+            const blob = new Blob([content], {type: 'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `reducering.txt`;
+            a.click();
+        };
     </script>
 </body>
 </html>
