@@ -183,14 +183,26 @@
                 rawTime: draw.closeTime,
                 matches: draw.events.map(e => {
                     const g = (v) => v ? parseFloat(v.toString().replace(',','.')) : 0;
-                    const odds = { '1': g(e.odds?.home).toFixed(2), 'X': g(e.odds?.draw).toFixed(2), '2': g(e.odds?.away).toFixed(2) };
+                    const odds = { '1': g(e.odds?.home), 'X': g(e.odds?.draw), '2': g(e.odds?.away) };
                     const dist = { '1': e.distribution.home/100, 'X': e.distribution.draw/100, '2': e.distribution.away/100 };
+            
+                    // NY KORREKT BERÄKNING: (1 / Odds) / Folkets_procent
+                    const calcVal = (o, d) => (o > 0 && d > 0) ? ((1 / o) / d).toFixed(2) : "0.00";
+                    
                     const val = { 
-                        '1': (parseFloat(odds['1']) * dist['1']).toFixed(2), 
-                        'X': (parseFloat(odds['X']) * dist['X']).toFixed(2), 
-                        '2': (parseFloat(odds['2']) * dist['2']).toFixed(2) 
+                        '1': calcVal(odds['1'], dist['1']), 
+                        'X': calcVal(odds['X'], dist['X']), 
+                        '2': calcVal(odds['2'], dist['2']) 
                     };
-                    return { home: e.participants[0].name, away: e.participants[1].name, odds, dist, val, fav: Object.entries(odds).sort((a,b)=>a[1]-b[1])[0][0] };
+
+                    return { 
+                        home: e.participants[0].name, 
+                        away: e.participants[1].name, 
+                        odds: { '1': odds['1'].toFixed(2), 'X': odds['X'].toFixed(2), '2': odds['2'].toFixed(2) }, 
+                        dist, 
+                        val, 
+                        fav: Object.entries(odds).sort((a,b)=>a[1]-b[1])[0][0] 
+                    };
                 })
             };
         }
@@ -312,4 +324,5 @@
     </script>
 </body>
 </html>
+
 
