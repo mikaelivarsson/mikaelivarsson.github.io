@@ -28,7 +28,7 @@
         <header class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-extrabold text-gray-900">TipsXtra <span class="text-blue-600">AI</span></h1>
-                <p class="text-gray-500" id="productName">Laddar spel...</p>
+                <p class="text-gray-500" id="productName">Väntar på data...</p>
                 <p class="text-xs text-gray-400" id="closeTime"></p>
             </div>
             <div class="flex gap-2">
@@ -40,12 +40,20 @@
             </div>
         </header>
 
+        <div id="corsWarning" class="hidden mb-6 p-4 bg-red-100 border-l-4 border-red-500 text-red-700 rounded shadow-sm">
+            <p class="font-bold">⚠️ Anslutningsproblem (CORS)</p>
+            <p class="text-sm mt-1">
+                Webbläsaren blockerade anropet till Svenska Spel. Eftersom vi hämtar data direkt (som i din andra kod) 
+                måste du ha ett tillägg som "Allow CORS" aktiverat i din webbläsare, eller köra detta i en miljö som tillåter det.
+            </p>
+        </div>
+
         <div id="ai-analysis" class="card mb-6 border-l-4 border-purple-500 hidden">
             <h2 class="text-lg font-bold mb-3 flex items-center">
                 <span class="mr-2">🧠</span> AI-Optimering & Spelförslag
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="ai-content">
-                </div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -120,14 +128,14 @@
         let allMatches = [];
         let calculatedRader = [];
         
-        // Vi byter till AllOrigins som fungerar bättre på GitHub Pages
-        const PROXY_URL = "https://api.allorigins.win/raw?url=";
-        const API_BASE = "https://api.www.svenskaspel.se/external/1/draw/";
+        // Här använder vi nyckeln och URL-strukturen från KOD 2
         const API_KEY = "accesskey=4a735ed0-b0c8-4a9a-8ea9-35bfd8d23ea7";
+        const API_BASE = "https://api.www.svenskaspel.se/external/1/draw/";
 
         window.onload = async () => { 
             loadSavedSettings(); 
-            await autoLoadNearestGame(); 
+            // Vid start försöker vi hämta det valda spelet direkt
+            await fetchDirectData();
         };
 
         function loadSavedSettings() {
@@ -138,62 +146,61 @@
             });
         }
 
-        async function fetchData(url) {
+        // KOPPLAT FRÅN KOD 2: Direkt hämtning utan proxy
+        async function fetchDirectData() {
+            const game = document.getElementById('gameSelect').value;
+            const url = `${API_BASE}${game}/draws?${API_KEY}`;
+            const warning = document.getElementById('corsWarning');
+            
+            warning.classList.add('hidden'); // Dölj varning först
+
             try {
-                // Vi lägger till en tidsstämpel (&t=) för att undvika gammal cache
-                const finalUrl = PROXY_URL + encodeURIComponent(url + (url.includes('?') ? '&' : '?') + "t=" + Date.now());
-                const response = await fetch(finalUrl);
-                if (!response.ok) throw new Error('Proxy error: ' + response.status);
-                return await response.json();
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                
+                // Vi skickar datat till parse-funktionen som anpassats för Layout 1
+                const parsedData = parseDataForLayout1(data);
+                if(parsedData) updateUI(parsedData);
+                
             } catch (e) {
                 console.error("Hämtningsfel:", e);
-                return null;
+                // Visa varning om det misslyckas (troligen CORS)
+                warning.classList.remove('hidden');
             }
         }
 
-        async function autoLoadNearestGame() {
-            const stryktipsetUrl = `${API_BASE}stryktipset/draws?${API_KEY}`;
-            const europatipsetUrl = `${API_BASE}europatipset/draws?${API_KEY}`;
-            
-            const [sData, eData] = await Promise.all([
-                fetchData(stryktipsetUrl), 
-                fetchData(europatipsetUrl)
-            ]);
-
-            const s = parse(sData), e = parse(eData);
-            const now = new Date();
-            const getT = (d) => d ? new Date(d.rawTime).getTime() : Infinity;
-            
-            let best = (getT(s) < getT(e) && getT(s) > now.getTime() - 7200000) ? {t:'stryktipset', d:s} : {t:'europatipset', d:e};
-            
-            if (best.d) { 
-                document.getElementById('gameSelect').value = best.t; 
-                updateUI(best.d); 
-            } else {
-                console.log("Kunde inte ladda data automatiskt.");
-            }
-        }
-
-        function parse(data) {
+        // Denna funktion tar datat från API:t (Kod 2 struktur) och formar om det till objektet som Layout 1 kräver
+        function parseDataForLayout1(data) {
             if (!data || !data.draws || data.draws.length === 0) return null;
             let draw = data.draws[0];
+            
             return {
                 name: draw.productName, 
-                time: new Date(draw.closeTime).toLocaleString('sv-SE'), 
+                time: new Date(draw.closeTime).toLocaleString('sv-SE', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'}),
                 rawTime: draw.closeTime,
                 matches: draw.events.map(e => {
+                    // Parsa odds och fördelning (från Kod 2 logik men sparat i Kod 1 format)
                     const g = (v) => v ? parseFloat(v.toString().replace(',','.')) : 0;
                     const odds = { '1': g(e.odds?.home), 'X': g(e.odds?.draw), '2': g(e.odds?.away) };
                     const dist = { '1': e.distribution.home/100, 'X': e.distribution.draw/100, '2': e.distribution.away/100 };
             
-                    // NY KORREKT BERÄKNING: (1 / Odds) / Folkets_procent
+                    // Beräkna värde
                     const calcVal = (o, d) => (o > 0 && d > 0) ? ((1 / o) / d).toFixed(2) : "0.00";
-                    
                     const val = { 
                         '1': calcVal(odds['1'], dist['1']), 
                         'X': calcVal(odds['X'], dist['X']), 
                         '2': calcVal(odds['2'], dist['2']) 
                     };
+
+                    // VIKTIGT: För att AI-funktionen ska fungera måste vi veta vem som är favorit
+                    // Detta fanns i Kod 1 men saknades i Kod 2. Vi återskapar det här.
+                    const fav = Object.entries(odds).sort((a,b) => {
+                        // Sortera lägst odds först. Om odds är 0 läggs det sist.
+                        if(a[1] === 0) return 1;
+                        if(b[1] === 0) return -1;
+                        return a[1] - b[1];
+                    })[0][0];
 
                     return { 
                         home: e.participants[0].name, 
@@ -201,23 +208,22 @@
                         odds: { '1': odds['1'].toFixed(2), 'X': odds['X'].toFixed(2), '2': odds['2'].toFixed(2) }, 
                         dist, 
                         val, 
-                        fav: Object.entries(odds).sort((a,b)=>a[1]-b[1])[0][0] 
+                        fav: fav 
                     };
                 })
             };
         }
 
         function updateUI(res) {
-            if (!res || !res.matches) {
-                alert("Kunde inte läsa matchdata. Testa att klicka på Hämta igen.");
-                return;
-            }
+            if (!res || !res.matches) return;
             allMatches = res.matches;
             document.getElementById('productName').textContent = res.name;
             document.getElementById('closeTime').textContent = "Spelstopp: " + res.time;
             renderTable();
             runAIAnalysis();
         }
+
+        // --- HÄR BÖRJAR LAYOUT-LOGIKEN FRÅN KOD 1 (Oförändrad) ---
 
         function renderTable() {
             let html = `<table><thead><tr><th class="w-8">#</th><th>Match</th><th>Folk %</th><th>Odds</th><th>Värde</th><th>Val</th><th class="w-8">#</th></tr></thead><tbody>`;
@@ -243,9 +249,13 @@
             let spikar = [], skrallar = [], varningar = [];
 
             allMatches.forEach((m, i) => {
-                const prob = (1 / parseFloat(m.odds[m.fav]));
+                const oddValue = parseFloat(m.odds[m.fav]);
+                const prob = oddValue > 0 ? (1 / oddValue) : 0;
                 const diff = (m.dist[m.fav] - prob) * 100;
+                
+                // AI Logik
                 if (prob > 0.50 && diff < 7) spikar.push(`M${i+1}: ${m.fav==='1'?m.home:m.away} (${Math.round(m.dist[m.fav]*100)}%)`);
+                
                 ['1','X','2'].forEach(o => {
                     const value = parseFloat(m.val[o]);
                     if (value > 1.05 && o !== m.fav) {
@@ -253,9 +263,12 @@
                         skrallar.push({text: `M${i+1}: ${name} (Värde ${value})`, val: value});
                     }
                 });
+                
                 if (diff > 10) varningar.push(`M${i+1}: ${m.fav==='1'?m.home:m.away} (+${Math.round(diff)}%)`);
             });
+            
             skrallar.sort((a, b) => b.val - a.val);
+            
             aiContent.innerHTML = `
                 <div class="p-3 bg-green-50 rounded border border-green-200"><h3 class="font-bold text-green-800 text-[10px] uppercase mb-2">💎 Bästa Spikarna</h3><ul class="text-[10px] space-y-1">${spikar.length?spikar.slice(0,4).map(s=>`<li>${s}</li>`).join(''):'Inga tydliga'}</ul></div>
                 <div class="p-3 bg-yellow-50 rounded border border-yellow-200"><h3 class="font-bold text-yellow-800 text-[10px] uppercase mb-2">🔥 Drag & Skrällar</h3><ul class="text-[10px] space-y-1">${skrallar.length?skrallar.slice(0,5).map(s=>`<li>${s.text}</li>`).join(''):'Inga drag funna'}</ul></div>
@@ -263,17 +276,10 @@
             `;
         }
 
-        document.getElementById('fetchBtn').onclick = async () => {
-            const game = document.getElementById('gameSelect').value;
-            const url = `${API_BASE}${game}/draws?${API_KEY}`;
-            const res = await fetchData(url);
-            if (res) updateUI(parse(res));
-            else alert("Kunde inte hämta data. Prova igen om några sekunder.");
-        };
+        // Koppla knappen till den nya fetch-funktionen
+        document.getElementById('fetchBtn').onclick = fetchDirectData;
 
-        // ... resten av knapp-logiken (markFavsBtn, markAllBtn, clearAllBtn, calculateBtn, exportSlipsBtn) ...
-        // Dessa funktioner är oförändrade från förra versionen:
-        
+        // Logic för knappar och beräkning (samma som Kod 1)
         document.getElementById('markFavsBtn').onclick = () => {
             allMatches.forEach((m, i) => {
                 document.querySelectorAll(`.outcome-cell[data-row="${i}"] span`).forEach(s => s.classList.remove('selected'));
@@ -282,28 +288,37 @@
         };
         document.getElementById('markAllBtn').onclick = () => document.querySelectorAll('.outcome-cell span').forEach(s => s.classList.add('selected'));
         document.getElementById('clearAllBtn').onclick = () => document.querySelectorAll('.outcome-cell span').forEach(s => s.classList.remove('selected'));
+        
         document.getElementById('calculateBtn').onclick = () => {
             const selections = Array.from(document.querySelectorAll('.outcome-cell')).map(c => Array.from(c.querySelectorAll('.selected')).map(s => s.dataset.o));
             if (selections.some(s => s.length === 0)) return alert("Välj minst ett tecken per match!");
+            
             const mathCount = selections.reduce((a, b) => a * b.length, 1);
             if(mathCount > 100000) if(!confirm(`Detta skapar ${mathCount} rader. Fortsätta?`)) return;
+            
             const conf = {
                 minF: parseInt(document.getElementById('minFavs').value), maxF: parseInt(document.getElementById('maxFavs').value),
                 minU: parseInt(document.getElementById('minUnder').value), maxU: parseInt(document.getElementById('maxUnder').value),
                 minX: parseInt(document.getElementById('minDraws').value), maxX: parseInt(document.getElementById('maxDraws').value),
                 minP: parseInt(document.getElementById('minPayout').value), maxP: parseInt(document.getElementById('maxPayout').value)
             };
+            
             calculatedRader = [];
             let payouts = [];
+            
             function gen(idx, rad, prob) {
                 if (idx === 13) {
                     let f=0, u=0, x=0;
                     rad.forEach((o, i) => { 
-                        if(parseFloat(allMatches[i].odds[o]) <= 2.1) f++; 
+                        // Här kollar vi oddset direkt från datan
+                        const odd = parseFloat(allMatches[i].odds[o]);
+                        if(odd <= 2.1 && odd > 0) f++; 
                         if(allMatches[i].dist[o] < 0.25) u++;
                         if(o === 'X') x++;
                     });
-                    let payout = (1 / prob) * 0.65;
+                    
+                    let payout = prob > 0 ? (1 / prob) * 0.65 : 0;
+                    
                     if (f>=conf.minF && f<=conf.maxF && u>=conf.minU && u<=conf.maxU && x>=conf.minX && x<=conf.maxX && payout>=conf.minP && payout<=conf.maxP) {
                         calculatedRader.push(rad.join('')); payouts.push(payout);
                     }
@@ -311,12 +326,15 @@
                 }
                 for (let o of selections[idx]) gen(idx + 1, [...rad, o], prob * allMatches[idx].dist[o]);
             }
+            
             gen(0, [], 1.0);
+            
             document.getElementById('resultsArea').classList.remove('hidden');
             document.getElementById('mathRader').textContent = mathCount.toLocaleString();
             document.getElementById('filteredSlips').textContent = calculatedRader.length.toLocaleString();
             document.getElementById('avgOut').textContent = Math.round(payouts.reduce((a,b)=>a+b,0)/(payouts.length||1)).toLocaleString() + " kr";
         };
+        
         document.getElementById('exportSlipsBtn').onclick = () => {
             const blob = new Blob(["TipsXtra\nE," + calculatedRader.map(r => r.split('').join(',')).join('\nE,')], {type: 'text/plain'});
             const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `tipsxtra_system.txt`; a.click();
@@ -324,5 +342,3 @@
     </script>
 </body>
 </html>
-
-
