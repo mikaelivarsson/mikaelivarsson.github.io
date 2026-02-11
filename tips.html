@@ -335,9 +335,30 @@
             document.getElementById('avgOut').textContent = Math.round(payouts.reduce((a,b)=>a+b,0)/(payouts.length||1)).toLocaleString() + " kr";
         };
         
-        document.getElementById('exportSlipsBtn').onclick = () => {
-            const blob = new Blob(["TipsXtra\nE," + calculatedRader.map(r => r.split('').join(',')).join('\nE,')], {type: 'text/plain'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `tipsxtra_system.txt`; a.click();
+       document.getElementById('exportSlipsBtn').onclick = () => {
+            if (calculatedRader.length === 0) return alert("Inga rader att exportera!");
+
+            // Hämta speltyp (t.ex. "Stryktipset")
+            const gameType = document.getElementById('productName').textContent.trim();
+            
+            // Skapa tidsstämpel för filnamnet (YYYY-MM-DD_HH-MM)
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.getHours().toString().padStart(2, '0') + "-" + now.getMinutes().toString().padStart(2, '0');
+            
+            // Generera filinnehåll: Första raden är speltyp, sedan E-rader
+            const fileContent = gameType + "\nE," + calculatedRader.map(r => r.split('').join(',')).join('\nE,');
+            
+            const blob = new Blob([fileContent], {type: 'text/plain'});
+            const a = document.createElement('a');
+            
+            // Filnamn: t.ex. Stryktipset_2026-02-11_17-30.txt
+            a.download = `${gameType}_${dateStr}_${timeStr}.txt`;
+            a.href = URL.createObjectURL(blob);
+            a.click();
+            
+            // Städa upp URL-objektet
+            setTimeout(() => URL.revokeObjectURL(a.href), 100);
         };
     </script>
 </body>
